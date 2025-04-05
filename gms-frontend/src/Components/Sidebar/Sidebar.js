@@ -39,7 +39,7 @@ const Sidebar = () => {
                 </div>
                 <div className="flex items-center mt-10 gap-3 font-semibold text-xl bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:text-black">
                     <span><GroupIcon /></span> 
-                    <span>Users</span>
+                    <span>Members</span>
                 </div>
                 <div className="flex items-center mt-10 gap-3 font-semibold text-xl bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:text-black">
                     <span><LogoutIcon /></span> 
