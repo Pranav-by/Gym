@@ -2,52 +2,73 @@ import React, { useState, useEffect } from 'react';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-    const [greeting, setGreeting] = useState("");
+  const navigate = useNavigate();
+  const [greeting, setGreeting] = useState('');
 
-    useEffect(() => {
-        const currentHour = new Date().getHours();
-        if (currentHour >= 6 && currentHour < 12) {
-            setGreeting("Good Morning ☀️");
-        } else if (currentHour >= 12 && currentHour < 17) {
-            setGreeting("Good Afternoon 🌤");
-        } else if (currentHour >= 17 && currentHour < 21) {
-            setGreeting("Good Evening 🌆");
-        } else {
-            setGreeting("Good Night 🌙");
-        }
-    }, []);
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) setGreeting('Good Morning ☀️');
+    else if (hour >= 12 && hour < 17) setGreeting('Good Afternoon 🌤');
+    else if (hour >= 17 && hour < 21) setGreeting('Good Evening 🌆');
+    else setGreeting('Good Night 🌙');
+  }, []);
 
-    return (
-        <div className="w-1/4 min-h-screen border-r-4 bg-black text-white p-6 font-bold text-sm shadow-lg flex flex-col items-center gap-6 overflow-y-auto">
-            {/* Logo & Title */}
-            <div className="flex items-center gap-3 text-center">
-                <img src="/image.png" alt="FITTRACK Logo" className="h-16 w-16 rounded-full" />
-                <span className="text-lg">FITTRACK</span>
-            </div>
+  const handleLogout = () => {
+    sessionStorage.removeItem('isLogin');
+    navigate('/');
+    window.location.reload();
+  };
 
-            {/* Dynamic Greeting & Role */}
-            <div className="text-xl font-medium">{greeting}</div>
-            <div className="text-lg font-bold">Admin</div>
+  return (
+    <div className="w-72 min-h-screen bg-glassWhite backdrop-blur-lg shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10 text-white flex flex-col items-center p-6 space-y-10">
+      
+      {/* Branding */}
+      <div className="flex items-center gap-3">
+        <img
+          src="/image.png"
+          alt="Logo"
+          className="h-16 w-16 rounded-full border-2 border-purple-500 shadow-xl"
+        />
+        <span className="text-2xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-transparent bg-clip-text">
+          FITTRACK
+        </span>
+      </div>
 
-            {/* Options Section */}
-            <div className="mt-10 py-10 border-t-2 border-gray-600 w-full">
-                <div className="flex items-center gap-3 font-semibold text-xl bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:text-black">
-                    <span><HomeIcon /></span> 
-                    <span>Dashboard</span>
-                </div>
-                <div className="flex items-center mt-10 gap-3 font-semibold text-xl bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:text-black">
-                    <span><GroupIcon /></span> 
-                    <span>Members</span>
-                </div>
-                <div className="flex items-center mt-10 gap-3 font-semibold text-xl bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:text-black">
-                    <span><LogoutIcon /></span> 
-                    <span>Logout</span>
-                </div>
-            </div>
+      {/* Greeting */}
+      <div className="text-center text-lg font-semibold animate-pulse text-cyan-300">
+        {greeting}
+      </div>
+      <div className="text-sm text-gray-400 tracking-wide">Admin Panel</div>
+
+      {/* Navigation */}
+      <div className="flex flex-col gap-6 w-full">
+        <Link to="/dashboard">
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 hover:text-black transition-all duration-300 ease-in-out cursor-pointer shadow-md hover:shadow-lg">
+            <HomeIcon />
+            <span className="font-semibold">Dashboard</span>
+          </div>
+        </Link>
+
+        <Link to="/member">
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-gradient-to-r from-green-300 via-lime-400 to-yellow-300 hover:text-black transition-all duration-300 ease-in-out cursor-pointer shadow-md hover:shadow-lg">
+            <GroupIcon />
+            <span className="font-semibold">Members</span>
+          </div>
+        </Link>
+
+        <div
+          onClick={handleLogout}
+          className="flex items-center gap-4 p-4 rounded-xl bg-black/30 hover:bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:text-black transition-all duration-300 ease-in-out cursor-pointer shadow-md hover:shadow-lg"
+        >
+          <LogoutIcon />
+          <span className="font-semibold">Logout</span>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default Sidebar;
