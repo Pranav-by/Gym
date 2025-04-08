@@ -30,22 +30,28 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-950 text-white p-6">
-      <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-center mb-10 drop-shadow-lg">
+      <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-center mb-12 drop-shadow-lg">
         💎 FITTRACK: Gym Management System
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
         {cards.map((card, index) => (
           <div
             key={index}
             onClick={() => navigate(card.path)}
-            className="group cursor-pointer bg-glassWhite backdrop-blur-glass border border-white/10 rounded-3xl p-6 shadow-neo transform hover:scale-105 transition-all duration-300 relative"
+            className="relative group cursor-pointer border border-white/10 rounded-3xl p-8 bg-white/5 backdrop-blur-xl shadow-[inset_0_0_0.5px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-300 overflow-hidden"
           >
-            {/* Top Gradient Border */}
-            <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r ${card.color}`} />
+            {/* Reflective shine */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20 pointer-events-none mix-blend-soft-light rounded-3xl" />
+
+            {/* Gradient top edge */}
+            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.color} rounded-t-3xl`} />
+
+            {/* Glow ring */}
+            <div className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-tr from-white/20 to-transparent rounded-full blur-2xl opacity-10 pointer-events-none"></div>
 
             {/* Icon */}
-            <div className="text-cyan-300 text-5xl group-hover:scale-110 transition-all duration-300 mb-4">
+            <div className="text-cyan-300 text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
               {card.icon}
             </div>
 

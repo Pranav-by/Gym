@@ -1,43 +1,50 @@
 import React from 'react';
-import PersonIcon from '@mui/icons-material/Person';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import SearchIcon from '@mui/icons-material/Search';
-import ListIcon from '@mui/icons-material/List';
+import { useNavigate } from 'react-router-dom';
+import { PersonAdd, Search, FormatListBulleted } from '@mui/icons-material';
 
-const Member = () => {
-  const memberOptions = [
-    { title: "All Members", icon: <ListIcon fontSize="large" />, color: "from-blue-400 via-blue-600 to-indigo-600" },
-    { title: "Add New Member", icon: <PersonAddIcon fontSize="large" />, color: "from-green-400 via-green-600 to-emerald-600" },
-    { title: "Search Members", icon: <SearchIcon fontSize="large" />, color: "from-yellow-400 via-yellow-600 to-orange-600" },
-    { title: "Member Profiles", icon: <PersonIcon fontSize="large" />, color: "from-pink-400 via-pink-600 to-purple-600" },
-  ];
+const memberCards = [
+  {
+    title: 'All Members',
+    icon: <FormatListBulleted fontSize="large" />,
+    path: '/members',
+    color: 'from-blue-500 to-indigo-500'
+  },
+  {
+    title: 'Add New Member',
+    icon: <PersonAdd fontSize="large" />,
+    path: '/registrations',
+    color: 'from-green-500 to-teal-500'
+  },
+  
+];
+
+const MemberHome = () => {
+  const navigate = useNavigate();
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-950 via-black to-gray-900 text-white min-h-screen p-8">
-      <h2 className="text-4xl font-extrabold mb-10 text-center bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 text-transparent bg-clip-text drop-shadow-lg">
-        Member Management
-      </h2>
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-950 text-white p-6">
+      <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 text-center mb-10">
+        👥 Member Management
+      </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-10">
-        {memberOptions.map((option, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-10 place-items-center">
+        {memberCards.map((card, index) => (
           <div
-            key={idx}
-            className="relative rounded-3xl p-6 bg-glassWhite backdrop-blur-glass border border-white/10 shadow-neo hover:scale-105 transition-all duration-500 group cursor-pointer"
+            key={index}
+            onClick={() => navigate(card.path)}
+            className="w-full sm:w-80 cursor-pointer bg-glassWhite backdrop-blur-glass border border-white/10 rounded-3xl p-6 shadow-neo transform hover:scale-105 transition-all duration-300 relative"
           >
-            {/* Gradient Top Border */}
-            <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r ${option.color}`} />
+            {/* Top Gradient Border */}
+            <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r ${card.color}`} />
 
-            <div className="flex flex-col items-center justify-center text-center space-y-4">
-              <div className="text-cyan-300 group-hover:text-white transition duration-300">
-                {option.icon}
-              </div>
-              <p className="text-xl font-semibold text-gray-300 group-hover:text-white tracking-wide">
-                {option.title}
-              </p>
+            {/* Icon */}
+            <div className="text-cyan-300 text-5xl mb-4">
+              {card.icon}
             </div>
 
-            {/* Neon Border on Hover */}
-            <div className={`absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-cyan-400 transition-all duration-500 pointer-events-none`}></div>
+            {/* Title */}
+            <h2 className="text-xl font-semibold text-white">{card.title}</h2>
+            <p className="text-gray-400 text-sm mt-2">Access {card.title} →</p>
           </div>
         ))}
       </div>
@@ -45,4 +52,4 @@ const Member = () => {
   );
 };
 
-export default Member;
+export default MemberHome;

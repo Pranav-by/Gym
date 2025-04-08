@@ -27,7 +27,7 @@ const Members = () => {
   return (
     <div className="p-10 min-h-screen text-white bg-gradient-to-br from-black via-gray-900 to-gray-800">
       <h1 className="text-3xl font-bold mb-4 text-yellow-400">👥 Joined Members</h1>
-      <p className="mb-4 text-lg text-gray-300">Manage and view gym members with filters and sorting.</p>
+      
 
       {/* Controls */}
       <div className="flex flex-wrap gap-4 mb-6">
