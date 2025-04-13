@@ -18,62 +18,63 @@ const NewRegistration = () => {
     e.preventDefault();
     console.log('📥 New Registration:', formData);
 
-    // Later: Send to backend here
     alert('✅ Member registered successfully (dummy)');
     setFormData({ name: '', email: '', phone: '', plan: 'Basic', startDate: '' });
   };
 
   return (
-    <div className="p-10 min-h-screen text-white bg-gradient-to-br from-black via-gray-900 to-gray-800">
-      <h1 className="text-3xl font-bold mb-6 text-blue-400">📝 New Member Registration</h1>
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white p-6">
+      <h1 className="text-4xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+        📝 New Member Registration
+      </h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-800 p-6 rounded-xl max-w-xl shadow-lg space-y-4"
+        className="max-w-xl mx-auto bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl space-y-6 backdrop-blur-md"
       >
         <div>
-          <label className="block mb-1">Full Name</label>
+          <label className="block mb-1 font-medium">Full Name</label>
           <input
             name="name"
             type="text"
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
 
         <div>
-          <label className="block mb-1">Email</label>
+          <label className="block mb-1 font-medium">Email</label>
           <input
             name="email"
             type="email"
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
 
         <div>
-          <label className="block mb-1">Phone</label>
+          <label className="block mb-1 font-medium">Phone</label>
           <input
             name="phone"
             type="tel"
             value={formData.phone}
             onChange={handleChange}
             required
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white outline-none focus:ring-2 focus:ring-yellow-400"
           />
         </div>
 
         <div>
-          <label className="block mb-1">Membership Plan</label>
+          <label className="block mb-1 font-medium">Membership Plan</label>
           <select
             name="plan"
             value={formData.plan}
             onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white outline-none focus:ring-2 focus:ring-green-400"
           >
             <option value="Basic">Basic</option>
             <option value="Standard">Standard</option>
@@ -83,21 +84,21 @@ const NewRegistration = () => {
         </div>
 
         <div>
-          <label className="block mb-1">Start Date</label>
+          <label className="block mb-1 font-medium">Start Date</label>
           <input
             name="startDate"
             type="date"
             value={formData.startDate}
             onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded font-semibold"
+          className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-purple-600 hover:to-pink-500 text-white font-bold rounded-xl shadow-md transition-all duration-300 hover:scale-105"
         >
-          Register Member
+          🚀 Register Member
         </button>
       </form>
     </div>
