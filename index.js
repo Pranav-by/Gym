@@ -3,13 +3,11 @@ const app = express();
 
 
 const PORT = 4000;
-
+app.use(express.json())
 require('./DBConn/conn')
 
-app.get('/',(req,res)=>{
-    res.send({"message":"Congrats your server is running on Port 4000 successfully"})
-})
-
+const GymRoutes = require('./Routes/gym')
+app.use('/auth',GymRoutes)
 app.listen(PORT,()=>{
     console.log("Server is running on Port 4000")
 })
