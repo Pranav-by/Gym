@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const NewRegistration = () => {
   const [formData, setFormData] = useState({
@@ -11,15 +12,54 @@ const NewRegistration = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('📥 New Registration:', formData);
 
-    alert('✅ Member registered successfully (dummy)');
-    setFormData({ name: '', email: '', phone: '', plan: 'Basic', startDate: '' });
+    try {
+      // Validate all fields (simple check)
+      if (!formData.name || !formData.email || !formData.phone || !formData.plan || !formData.startDate) {
+        alert('⚠️ Please fill out all fields.');
+        return;
+      }
+
+      // 1. Register the user first
+      const registrationRes = await axios.post(
+        'http://localhost:4000/api/registrations',
+        formData,
+        { withCredentials: true }
+      );
+
+      // 2. Create a member based on registration
+      const memberPayload = {
+        name: formData.name,
+        email: formData.email,
+        membership: formData.plan,
+        dateOfStart: formData.startDate,
+      };
+
+      const memberRes = await axios.post(
+        'http://localhost:4000/api/members',
+        memberPayload,
+        { withCredentials: true }
+      );
+
+      // ✅ Success
+      alert('🎉 Member registered and added successfully!');
+      setFormData({ name: '', email: '', phone: '', plan: 'Basic', startDate: '' });
+
+    } catch (error) {
+      // Better error message
+      console.error('❌ Error:', error);
+
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`❌ ${error.response.data.error}`);
+      } else {
+        alert('❌ Something went wrong. Please try again.');
+      }
+    }
   };
 
   return (

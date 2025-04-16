@@ -1,23 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Plus, Trash2 } from 'lucide-react';
 
 const Trainers = () => {
-  const [trainers, setTrainers] = useState([
-    { name: 'Rahul Sharma', role: 'Trainer', experience: 5 },
-    { name: 'Anjali Mehta', role: 'Nutritionist', experience: 3 },
-    { name: 'Karan Patel', role: 'Physiotherapist', experience: 4 },
-    { name: 'Priya Singh', role: 'Trainer', experience: 6 },
-  ]);
+  const [trainers, setTrainers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [showModal, setShowModal] = useState(false);
-  const [newTrainer, setNewTrainer] = useState({ name: '', role: '', experience: '' });
+  const [newTrainer, setNewTrainer] = useState({
+    name: '',
+    role: '',
+    experience: ''
+  });
 
-  // 🆕 Delete handler
-  const handleDelete = (index) => {
-    setTrainers(prev => prev.filter((_, i) => i !== index));
+  // ✅ Fetch trainers from backend
+  useEffect(() => {
+    fetchTrainers();
+  }, []);
+
+  const fetchTrainers = async () => {
+    try {
+      const res = await axios.get('http://localhost:4000/api/trainers');
+      setTrainers(res.data);
+    } catch (err) {
+      console.error('Error fetching trainers:', err);
+    }
   };
 
+  // ✅ Delete a trainer
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/trainers/${id}`);
+      setTrainers(prev => prev.filter(tr => tr._id !== id));
+    } catch (err) {
+      console.error('Error deleting trainer:', err);
+    }
+  };
+
+  // ✅ Add a new trainer
+  const handleAdd = async () => {
+    if (!newTrainer.name || !newTrainer.role || !newTrainer.experience) {
+      alert('Please fill out all fields');
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:4000/api/trainers', newTrainer);
+      setShowModal(false);
+      setNewTrainer({ name: '', role: '', experience: '' });
+      fetchTrainers(); // Re-fetch from backend
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.error || err.message));
+      console.error('Error adding trainer:', err.response?.data || err);
+    }
+  };
+
+  // 🔍 Search & Sort
   const filtered = trainers
     .filter(t =>
       t.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -27,12 +65,6 @@ const Trainers = () => {
       if (sortBy === 'experience') return b.experience - a.experience;
       return 0;
     });
-
-  const handleAdd = () => {
-    setTrainers(prev => [...prev, newTrainer]);
-    setShowModal(false);
-    setNewTrainer({ name: '', role: '', experience: '' });
-  };
 
   return (
     <div className="p-10 min-h-screen text-white bg-gradient-to-br from-black via-gray-900 to-gray-800">
@@ -63,15 +95,14 @@ const Trainers = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((trainer, idx) => (
-          <div key={idx} className="bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition relative">
+        {filtered.map((trainer) => (
+          <div key={trainer._id} className="bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition relative">
             <h2 className="text-xl font-bold text-green-400">{trainer.name}</h2>
             <p className="text-gray-300">🧑‍💼 Role: {trainer.role}</p>
             <p className="text-yellow-400">🏆 Experience: {trainer.experience} years</p>
-            
-            {/* 🆕 Delete Button */}
+
             <button
-              onClick={() => handleDelete(idx)}
+              onClick={() => handleDelete(trainer._id)}
               className="absolute top-4 right-4 text-red-400 hover:text-red-600 transition"
               title="Delete Trainer"
             >
@@ -93,23 +124,39 @@ const Trainers = () => {
               value={newTrainer.name}
               onChange={(e) => setNewTrainer({ ...newTrainer, name: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="Role"
+            <select
               className="w-full p-2 rounded bg-gray-800 text-white"
               value={newTrainer.role}
               onChange={(e) => setNewTrainer({ ...newTrainer, role: e.target.value })}
-            />
+            >
+              <option value="">Select Role</option>
+              <option value="Trainer">Trainer</option>
+              <option value="Nutritionist">Nutritionist</option>
+              <option value="Physiotherapist">Physiotherapist</option>
+              <option value="Other">Other</option>
+            </select>
             <input
               type="number"
               placeholder="Experience (years)"
               className="w-full p-2 rounded bg-gray-800 text-white"
               value={newTrainer.experience}
-              onChange={(e) => setNewTrainer({ ...newTrainer, experience: Number(e.target.value) })}
+              onChange={(e) =>
+                setNewTrainer({ ...newTrainer, experience: Number(e.target.value) })
+              }
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowModal(false)} className="text-red-400">Cancel</button>
-              <button onClick={handleAdd} className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700">Add</button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-red-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdd}
+                className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                Add
+              </button>
             </div>
           </div>
         </div>

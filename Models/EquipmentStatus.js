@@ -27,9 +27,20 @@ const equipmentSchema = new mongoose.Schema({
   },
 });
 
-// Middleware to update the updatedAt field whenever a document is updated
+// Middleware to update the updatedAt field whenever a document is saved
 equipmentSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
+  next();
+});
+
+// Middleware to update the updatedAt field whenever a document is updated
+equipmentSchema.pre('update', function(next) {
+  this.set({ updatedAt: Date.now() });
+  next();
+});
+
+equipmentSchema.pre('findOneAndUpdate', function(next) {
+  this.set({ updatedAt: Date.now() });
   next();
 });
 

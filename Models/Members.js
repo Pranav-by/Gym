@@ -15,6 +15,7 @@ const memberSchema = new mongoose.Schema({
   },
   membership: {
     type: String,
+    ref: 'MembershipPlan', 
     enum: ['Basic', 'Standard', 'Premium', 'Gold', 'Platinum'], // Allowed membership types
     required: true,
   },

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const dietPlanSchema = new mongoose.Schema({
   title: {
@@ -36,7 +36,7 @@ const dietPlanSchema = new mongoose.Schema({
 });
 
 // Middleware to update the updatedAt field whenever a document is updated
-dietPlanSchema.pre('save', function(next) {
+dietPlanSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

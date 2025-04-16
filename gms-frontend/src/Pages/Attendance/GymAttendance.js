@@ -1,45 +1,62 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Plus } from 'lucide-react';
 
-const initialAttendanceData = [
-  { name: 'Aman Gupta', date: '2025-04-04', timeIn: '08:00' },
-  { name: 'Meera Singh', date: '2025-04-04', timeIn: '09:30' },
-  { name: 'Ravi Kumar', date: '2025-04-03', timeIn: '07:45' },
-  { name: 'Simran Kaur', date: '2025-04-03', timeIn: '10:15' },
-];
-
 const GymAttendance = () => {
-  const [attendanceData, setAttendanceData] = useState(initialAttendanceData);
+  const [attendanceData, setAttendanceData] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [newEntry, setNewEntry] = useState({ name: '', date: '', timeIn: '' });
   const [showForm, setShowForm] = useState(false);
 
-  // Count by date
-  const attendanceByDate = attendanceData.reduce((acc, entry) => {
-    acc[entry.date] = (acc[entry.date] || 0) + 1;
+  // Fetch attendance from backend
+  const fetchAttendance = async () => {
+    try {
+      const res = await axios.get('http://localhost:4000/api/attendance');
+      setAttendanceData(res.data);
+    } catch (err) {
+      console.error('Error fetching attendance:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendance();
+  }, []);
+
+  // Filtered entries
+  const filtered = attendanceData.filter(entry =>
+    entry.name.toLowerCase().includes(searchName.toLowerCase()) &&
+    (filterDate === '' || entry.date.slice(0, 10) === filterDate)
+  );
+
+  // Group attendance by date
+  const attendanceByDate = filtered.reduce((acc, entry) => {
+    const date = entry.date.slice(0, 10);
+    acc[date] = (acc[date] || 0) + 1;
     return acc;
   }, {});
 
-  // Filter data
-  const filtered = attendanceData.filter(entry =>
-    entry.name.toLowerCase().includes(searchName.toLowerCase()) &&
-    (filterDate === '' || entry.date === filterDate)
-  );
-
-  // Add new entry
-  const addEntry = () => {
-    if (newEntry.name && newEntry.date && newEntry.timeIn) {
-      setAttendanceData([...attendanceData, newEntry]);
+  // Add entry
+  const addEntry = async () => {
+    try {
+      if (!newEntry.name || !newEntry.date || !newEntry.timeIn) return;
+      const res = await axios.post('http://localhost:4000/api/attendance', newEntry);
+      setAttendanceData(prev => [...prev, res.data]);
       setNewEntry({ name: '', date: '', timeIn: '' });
       setShowForm(false);
+    } catch (err) {
+      console.error('Error adding attendance:', err.message);
     }
   };
 
   // Delete entry
-  const handleDelete = (indexToDelete) => {
-    const updatedData = attendanceData.filter((_, index) => index !== indexToDelete);
-    setAttendanceData(updatedData);
+  const deleteEntry = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/attendance/${id}`);
+      setAttendanceData(prev => prev.filter(entry => entry._id !== id));
+    } catch (err) {
+      console.error('Error deleting attendance:', err.message);
+    }
   };
 
   return (
@@ -116,14 +133,14 @@ const GymAttendance = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((entry, idx) => (
-              <tr key={idx} className="hover:bg-gray-700 transition">
+            {filtered.map((entry) => (
+              <tr key={entry._id} className="hover:bg-gray-700 transition">
                 <td className="py-2">{entry.name}</td>
-                <td className="py-2">{entry.date}</td>
+                <td className="py-2">{entry.date.slice(0, 10)}</td>
                 <td className="py-2 text-green-400 font-semibold">{entry.timeIn}</td>
                 <td className="py-2">
                   <button
-                    onClick={() => handleDelete(attendanceData.indexOf(entry))}
+                    onClick={() => deleteEntry(entry._id)}
                     className="text-red-500 hover:text-red-700 font-bold"
                   >
                     ❌
@@ -135,7 +152,7 @@ const GymAttendance = () => {
         </table>
       </div>
 
-      {/* Bar Chart */}
+      {/* Attendance Summary */}
       <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
         <h2 className="text-xl font-semibold mb-4 text-yellow-300">📊 Attendance Summary</h2>
         <div className="flex items-end gap-6 h-48">

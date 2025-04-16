@@ -1,45 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit } from 'lucide-react';
+import axios from 'axios';
 
 const EquipmentStatus = () => {
-  const [equipmentList, setEquipmentList] = useState([
-    { name: 'Treadmill', status: 'Working', lastServiced: '2025-03-20' },
-    { name: 'Elliptical', status: 'Under Maintenance', lastServiced: '2025-03-30' },
-    { name: 'Bench Press', status: 'Working', lastServiced: '2025-04-01' },
-    { name: 'Leg Press', status: 'Needs Repair', lastServiced: '2025-03-15' },
-    { name: 'Rowing Machine', status: 'Working', lastServiced: '2025-03-18' },
-    { name: 'Dumbbells Rack', status: 'Working', lastServiced: '2025-04-02' },
-    { name: 'Smith Machine', status: 'Under Maintenance', lastServiced: '2025-03-27' },
-    { name: 'Cable Crossover', status: 'Needs Repair', lastServiced: '2025-03-10' },
-    { name: 'Lat Pulldown', status: 'Working', lastServiced: '2025-04-03' },
-    { name: 'Leg Curl Machine', status: 'Working', lastServiced: '2025-04-04' },
-    { name: 'Chest Press', status: 'Under Maintenance', lastServiced: '2025-03-22' },
-    { name: 'Stair Climber', status: 'Needs Repair', lastServiced: '2025-03-17' },
-  ]);
-
+  const [equipmentList, setEquipmentList] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newEquipment, setNewEquipment] = useState({ name: '', status: '', lastServiced: '' });
   const [editingStatus, setEditingStatus] = useState({ index: -1, status: '' });
 
-  const addEquipment = () => {
-    if (newEquipment.name && newEquipment.status && newEquipment.lastServiced) {
-      const updatedList = [...equipmentList, newEquipment];
-      setEquipmentList(updatedList);
-      setNewEquipment({ name: '', status: '', lastServiced: '' });
-      setShowForm(false);
+  // Fetch equipment data from the backend
+  const fetchEquipmentList = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/equipment');
+      setEquipmentList(response.data);
+    } catch (error) {
+      console.error('Error fetching equipment data:', error);
     }
   };
 
-  const handleStatusChange = (index) => {
-    const updatedList = [...equipmentList];
-    updatedList[index].status = editingStatus.status;
-    setEquipmentList(updatedList);
-    setEditingStatus({ index: -1, status: '' });
+  // Call the fetch function when the component mounts
+  useEffect(() => {
+    fetchEquipmentList();
+  }, []);
+
+  // Add new equipment
+  const addEquipment = async () => {
+    if (newEquipment.name && newEquipment.status && newEquipment.lastServiced) {
+      try {
+        const response = await axios.post('http://localhost:4000/api/equipment', newEquipment);
+        setEquipmentList([...equipmentList, response.data]);
+        setNewEquipment({ name: '', status: '', lastServiced: '' });
+        setShowForm(false);
+      } catch (error) {
+        console.error('Error adding equipment:', error);
+      }
+    }
   };
 
-  const handleDelete = (index) => {
-    const updatedList = equipmentList.filter((_, i) => i !== index);
-    setEquipmentList(updatedList);
+  // Update equipment status
+  const handleStatusChange = async (index) => {
+    const updatedEquipment = equipmentList[index];
+    updatedEquipment.status = editingStatus.status;
+
+    try {
+      const response = await axios.put(`http://localhost:4000/api/equipment/${updatedEquipment._id}`, updatedEquipment);
+      const updatedList = [...equipmentList];
+      updatedList[index] = response.data;
+      setEquipmentList(updatedList);
+      setEditingStatus({ index: -1, status: '' });
+    } catch (error) {
+      console.error('Error updating equipment status:', error);
+    }
+  };
+
+  // Delete equipment
+  const handleDelete = async (id, index) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/equipment/${id}`);
+      const updatedList = equipmentList.filter((_, i) => i !== index);
+      setEquipmentList(updatedList);
+    } catch (error) {
+      console.error('Error deleting equipment:', error);
+    }
   };
 
   return (
@@ -96,7 +118,7 @@ const EquipmentStatus = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {equipmentList.map((equip, index) => (
           <div
-            key={index}
+            key={equip._id}
             className="bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-xl hover:bg-gray-700 transition duration-300"
           >
             <h2 className="text-xl font-bold text-green-400 mb-2">{equip.name}</h2>
@@ -158,7 +180,7 @@ const EquipmentStatus = () => {
 
             {/* Delete Button */}
             <button
-              onClick={() => handleDelete(index)}
+              onClick={() => handleDelete(equip._id, index)}
               className="text-red-500 hover:text-red-700 mt-4"
             >
               <Trash2 size={20} /> Delete

@@ -4,8 +4,9 @@ import { toast } from 'react-toastify';
 import LockPersonIcon from '@mui/icons-material/LockPerson';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios'; // 👈 Import axios
+import { ClipLoader } from 'react-spinners'; // 👈 Import the loader
 
-// 🛠️ Custom HUD-style Toast Function
 const playToast = (type, title, message) => {
   const content = (
     <div className="space-y-1">
@@ -36,27 +37,56 @@ const ForgetPassword = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false); // 👈 Loading state
 
-  const handleSubmit = () => {
-    if (step === 1) {
-      if (!email.trim())
-        return playToast("error", "Email Required", "Please enter your email address.");
-      playToast("success", "OTP Sent!", "An OTP has been sent to your email.");
-      setStep(2);
-    } else if (step === 2) {
-      if (!otp || otp.length < 4)
-        return playToast("error", "Invalid OTP", "Please enter a valid 4-digit OTP.");
-      playToast("success", "OTP Verified", "Proceed to set a new password.");
-      setStep(3);
-    } else if (step === 3) {
-      if (!newPassword || newPassword.length < 6)
-        return playToast("error", "Weak Password", "Password must be at least 6 characters.");
-      playToast("success", "Password Reset", "Your password has been successfully reset!");
-      setStep(1);
-      setEmail('');
-      setOtp('');
-      setNewPassword('');
-      setTimeout(() => navigate('/'), 2000);
+  const handleSubmit = async () => {
+    try {
+      setLoading(true); // 👈 Start loading
+
+      if (step === 1) {
+        if (!email.trim()) {
+          setLoading(false); // 👈 Stop loading
+          return playToast("error", "Email Required", "Please enter your email address.");
+        }
+
+        await axios.post("http://localhost:4000/auth/forgot-password", { email });
+        playToast("success", "OTP Sent!", "An OTP has been sent to your email.");
+        setStep(2);
+      }
+
+      else if (step === 2) {
+        if (!otp || otp.length < 4) {
+          setLoading(false); // 👈 Stop loading
+          return playToast("error", "Invalid OTP", "Please enter a valid 4-digit OTP.");
+        }
+
+        playToast("success", "OTP Verified", "Proceed to set a new password.");
+        setStep(3);
+      }
+
+      else if (step === 3) {
+        if (!newPassword || newPassword.length < 6) {
+          setLoading(false); // 👈 Stop loading
+          return playToast("error", "Weak Password", "Password must be at least 6 characters.");
+        }
+
+        await axios.post("http://localhost:4000/auth/reset-password", {
+          email,
+          otp,
+          newPassword
+        });
+
+        playToast("success", "Password Reset", "Your password has been successfully reset!");
+        setStep(1);
+        setEmail('');
+        setOtp('');
+        setNewPassword('');
+        setTimeout(() => navigate('/'), 2000);
+      }
+    } catch (err) {
+      setLoading(false); // 👈 Stop loading
+      const msg = err?.response?.data?.message || "Something went wrong!";
+      playToast("error", "Request Failed", msg);
     }
   };
 
@@ -73,33 +103,10 @@ const ForgetPassword = () => {
       transition={{ duration: 1 }}
       className="min-h-screen flex items-center justify-center relative text-white bg-black overflow-hidden"
     >
-      {/* 🌌 Stars Background */}
-      <div
-        className="absolute inset-0 z-0 bg-repeat bg-center bg-cover pointer-events-none"
-        style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/stars.gif)` }}
-      />
-
-      {/* 🧠 HUD Overlay */}
-      <div
-        className="absolute inset-0 z-10 bg-cover bg-center opacity-20 pointer-events-none"
-        style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/hud-overlay.png)` }}
-      />
-
-      {/* ✨ Gradient Blobs */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute w-[300px] h-[300px] bg-fuchsia-500 opacity-30 blur-3xl top-[10%] left-[20%] animate-pulse rounded-full"></div>
-        <div className="absolute w-[400px] h-[400px] bg-indigo-500 opacity-20 blur-3xl top-[60%] left-[60%] animate-ping rounded-full"></div>
-        <div className="absolute w-[200px] h-[200px] bg-cyan-400 opacity-20 blur-2xl top-[5%] left-[75%] rounded-full animate-bounce"></div>
-      </div>
-
-      {/* 🔐 Reset Card */}
+      {/* Main Reset Password Card */}
       <Tilt scale={1.05} glareEnable={true} glareMaxOpacity={0.2} className="z-20">
         <div className="w-[350px] p-8 rounded-3xl bg-black/30 backdrop-blur-md border border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.15)] relative overflow-hidden">
-
-          {/* Shine Effect */}
-          <div className="absolute top-0 left-[-75%] w-[50%] h-full bg-white/10 rotate-[30deg] animate-[shine_1.5s_linear_infinite] z-10 pointer-events-none"></div>
-
-          {/* Icon & Title */}
+          {/* Shine Effect, Icon, and Title */}
           <div className="flex flex-col items-center justify-center mb-6 z-20 relative">
             <LockPersonIcon sx={{ fontSize: 60 }} className="text-purple-400 drop-shadow-lg mb-2" />
             <h2 className="text-center text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-500 to-indigo-400 text-transparent bg-clip-text drop-shadow-md">
@@ -144,8 +151,13 @@ const ForgetPassword = () => {
           <button
             onClick={handleSubmit}
             className="w-full mt-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white font-bold py-2 rounded-xl shadow-lg hover:scale-105 hover:shadow-pink-500/40 transition-all duration-300"
+            disabled={loading} // Disable button while loading
           >
-            {getButtonLabel()}
+            {loading ? (
+              <ClipLoader size={20} color="#fff" /> // Show loader when loading
+            ) : (
+              getButtonLabel()
+            )}
           </button>
 
           {/* Back Link */}

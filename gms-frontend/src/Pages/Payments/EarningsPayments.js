@@ -1,30 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import axios from 'axios';
 
 const EarningsPayments = () => {
-  const [earnings, setEarnings] = useState([
-    { date: '2025-04-01', source: 'Membership', amount: 1000 },
-    { date: '2025-04-02', source: 'PT Session', amount: 1500 },
-    { date: '2025-04-03', source: 'Yoga Class', amount: 800 },
-  ]);
-
+  const [earnings, setEarnings] = useState([]); // Start with an empty array
   const [showForm, setShowForm] = useState(false);
   const [newEarning, setNewEarning] = useState({ date: '', source: '', amount: '' });
 
   const total = earnings.reduce((sum, e) => sum + e.amount, 0);
 
+  useEffect(() => {
+    // Fetch earnings from backend when the component mounts
+    axios.get('http://localhost:4000/api/earnings', { withCredentials: true })
+      .then(res => {
+        setEarnings(res.data); // Set the earnings from the response
+      })
+      .catch(err => console.error('Error fetching earnings:', err));
+  }, []);
+
   const addEarning = () => {
     if (newEarning.date && newEarning.source && newEarning.amount) {
-      const updated = [...earnings, { ...newEarning, amount: parseFloat(newEarning.amount) }];
-      setEarnings(updated);
-      setNewEarning({ date: '', source: '', amount: '' });
-      setShowForm(false);
+      const updatedEarning = { ...newEarning, amount: parseFloat(newEarning.amount) };
+      
+      console.log('Adding new earning:', updatedEarning);  // Log to see the data being sent to the backend
+
+      // Post new earning to the backend
+      axios.post('http://localhost:4000/api/earnings', updatedEarning, { withCredentials: true })
+        .then(res => {
+          console.log('New earning added:', res.data);  // Log the response data from the backend
+
+          // Re-fetch earnings after adding new one
+          axios.get('http://localhost:4000/api/earnings', { withCredentials: true })
+            .then(res => {
+              setEarnings(res.data);
+              setNewEarning({ date: '', source: '', amount: '' });
+              setShowForm(false);
+            })
+            .catch(err => console.error('Error fetching updated earnings:', err));
+        })
+        .catch(err => {
+          console.error('Error adding earning:', err);
+          alert('Error adding earning');
+        });
+    } else {
+      alert('Please fill in all fields.');
     }
   };
 
-  const handleDelete = (index) => {
-    const updatedEarnings = earnings.filter((_, i) => i !== index);
-    setEarnings(updatedEarnings);
+  const handleDelete = (id) => {
+    // Delete earning from the backend
+    axios.delete(`http://localhost:4000/api/earnings/${id}`, { withCredentials: true })
+      .then(() => {
+        // Remove deleted earning from the state
+        setEarnings(earnings.filter(e => e._id !== id));
+      })
+      .catch(err => console.error('Error deleting earning:', err));
   };
 
   return (
@@ -93,15 +123,15 @@ const EarningsPayments = () => {
             </tr>
           </thead>
           <tbody>
-            {earnings.map((entry, idx) => (
-              <tr key={idx} className="hover:bg-gray-700 transition-all">
+            {earnings.map((entry) => (
+              <tr key={entry._id} className="hover:bg-gray-700 transition-all">
                 <td className="py-2">{entry.date}</td>
                 <td className="py-2">{entry.source}</td>
                 <td className="py-2 text-green-300 font-semibold">₹{entry.amount}</td>
                 <td className="py-2">
                   {/* Delete Button */}
                   <button
-                    onClick={() => handleDelete(idx)}
+                    onClick={() => handleDelete(entry._id)}
                     className="text-red-500 hover:text-red-700 transition"
                     title="Delete Earning"
                   >

@@ -1,56 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Plus, Trash2, Edit } from 'lucide-react';
 
 const DietNutritionPlans = () => {
-  const [plans, setPlans] = useState([
-    {
-      id: 1,
-      title: 'Weight Loss Plan',
-      duration: '4 Weeks',
-      calories: '1500 kcal/day',
-      meals: ['Oats Breakfast', 'Salad Lunch', 'Protein Shake Dinner'],
-    },
-    {
-      id: 2,
-      title: 'Muscle Gain Plan',
-      duration: '6 Weeks',
-      calories: '2500 kcal/day',
-      meals: ['Eggs & Toast', 'Chicken & Rice', 'Beef & Veggies'],
-    },
-    {
-      id: 3,
-      title: 'Balanced Nutrition Plan',
-      duration: '1 Month',
-      calories: '2000 kcal/day',
-      meals: ['Smoothie Bowl', 'Grilled Fish', 'Veggie Stir Fry'],
-    },
-    {
-      id: 4,
-      title: 'Vegan Plan',
-      duration: '4 Weeks',
-      calories: '1800 kcal/day',
-      meals: ['Tofu Scramble', 'Quinoa Salad', 'Lentil Curry'],
-    },
-    {
-      id: 5,
-      title: 'Keto Plan',
-      duration: '6 Weeks',
-      calories: '1700 kcal/day',
-      meals: ['Avocado Eggs', 'Zucchini Noodles', 'Cheese Omelette'],
-    },
-  ]);
-
+  const [plans, setPlans] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newPlan, setNewPlan] = useState({ title: '', duration: '', calories: '', meals: [] });
   const [editingPlan, setEditingPlan] = useState(null);
 
-  const addPlan = () => {
-    if (newPlan.title && newPlan.duration && newPlan.calories && newPlan.meals.length) {
-      const newId = plans.length + 1;
-      const updatedPlans = [...plans, { ...newPlan, id: newId }];
-      setPlans(updatedPlans);
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const res = await axios.get('http://localhost:4000/api/diet-nutrition-plans', { withCredentials: true });
+      setPlans(res.data);
+    } catch (err) {
+      console.error('Error fetching plans:', err);
+    }
+  };
+
+  const addPlan = async () => {
+    try {
+      await axios.post('http://localhost:4000/api/diet-nutrition-plans', newPlan, { withCredentials: true });
+      fetchPlans();
       setNewPlan({ title: '', duration: '', calories: '', meals: [] });
       setShowForm(false);
+    } catch (err) {
+      console.error('Error adding plan:', err);
     }
   };
 
@@ -58,17 +36,23 @@ const DietNutritionPlans = () => {
     setEditingPlan(plan);
   };
 
-  const saveEditPlan = () => {
-    const updatedPlans = plans.map((plan) =>
-      plan.id === editingPlan.id ? editingPlan : plan
-    );
-    setPlans(updatedPlans);
-    setEditingPlan(null);
+  const saveEditPlan = async () => {
+    try {
+      await axios.put(`http://localhost:4000/api/diet-nutrition-plans/${editingPlan._id}`, editingPlan, { withCredentials: true });
+      fetchPlans();
+      setEditingPlan(null);
+    } catch (err) {
+      console.error('Error updating plan:', err);
+    }
   };
 
-  const handleDeletePlan = (id) => {
-    const updatedPlans = plans.filter((plan) => plan.id !== id);
-    setPlans(updatedPlans);
+  const handleDeletePlan = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/diet-nutrition-plans/${id}`, { withCredentials: true });
+      fetchPlans();
+    } catch (err) {
+      console.error('Error deleting plan:', err);
+    }
   };
 
   return (
@@ -85,7 +69,7 @@ const DietNutritionPlans = () => {
         </button>
       </div>
 
-      {/* Modal for Adding Diet Plan */}
+      {/* Add Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-gray-900 p-8 rounded-2xl shadow-2xl space-y-4 w-full max-w-md">
@@ -137,7 +121,7 @@ const DietNutritionPlans = () => {
         </div>
       )}
 
-      {/* Edit Plan Modal */}
+      {/* Edit Form */}
       {editingPlan && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-gray-900 p-8 rounded-2xl shadow-2xl space-y-4 w-full max-w-md">
@@ -147,27 +131,21 @@ const DietNutritionPlans = () => {
               placeholder="Plan Title"
               className="w-full p-2 rounded bg-gray-800 text-white"
               value={editingPlan.title}
-              onChange={(e) =>
-                setEditingPlan({ ...editingPlan, title: e.target.value })
-              }
+              onChange={(e) => setEditingPlan({ ...editingPlan, title: e.target.value })}
             />
             <input
               type="text"
               placeholder="Duration"
               className="w-full p-2 rounded bg-gray-800 text-white"
               value={editingPlan.duration}
-              onChange={(e) =>
-                setEditingPlan({ ...editingPlan, duration: e.target.value })
-              }
+              onChange={(e) => setEditingPlan({ ...editingPlan, duration: e.target.value })}
             />
             <input
               type="text"
               placeholder="Calories"
               className="w-full p-2 rounded bg-gray-800 text-white"
               value={editingPlan.calories}
-              onChange={(e) =>
-                setEditingPlan({ ...editingPlan, calories: e.target.value })
-              }
+              onChange={(e) => setEditingPlan({ ...editingPlan, calories: e.target.value })}
             />
             <textarea
               placeholder="Meals (comma separated)"
@@ -199,7 +177,7 @@ const DietNutritionPlans = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
-            key={plan.id}
+            key={plan._id}
             className="bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-xl hover:bg-gray-700 transition duration-300"
           >
             <h2 className="text-xl font-bold text-green-400 mb-2">{plan.title}</h2>
@@ -211,18 +189,14 @@ const DietNutritionPlans = () => {
                 <li key={index}>🍽️ {meal}</li>
               ))}
             </ul>
-
-            {/* Edit Button */}
             <button
               onClick={() => handleEditPlan(plan)}
               className="text-blue-400 hover:text-blue-600 mt-4"
             >
               <Edit size={20} /> Edit
             </button>
-
-            {/* Delete Button */}
             <button
-              onClick={() => handleDeletePlan(plan.id)}
+              onClick={() => handleDeletePlan(plan._id)}
               className="text-red-500 hover:text-red-700 mt-4"
             >
               <Trash2 size={20} /> Delete

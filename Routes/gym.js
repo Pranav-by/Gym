@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const auth = require("../Auth/auth");
 const {
   registerGymUser,
   loginGymUser,
@@ -8,16 +9,25 @@ const {
   resetPassword,
 } = require("../Controllers/gym");
 
-// Register route
+// Public Routes
 router.post("/register", registerGymUser);
-
-// Login route
 router.post("/login", loginGymUser);
-
-// Forgot Password route
 router.post("/forgot-password", forgotPassword);
-
-// Reset Password route
 router.post("/reset-password", resetPassword);
+
+// Logout Route
+router.post("/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  res.json({ message: "Logged out successfully" });
+});
+
+// Protected Route Example
+router.get("/protected", auth, (req, res) => {
+  res.json({ message: `Welcome, ${req.user.username}` });
+});
 
 module.exports = router;

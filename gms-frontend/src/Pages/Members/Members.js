@@ -1,22 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import axios from 'axios';
 
 const Members = () => {
-  const [members, setMembers] = useState([
-    { name: 'John Doe', email: 'john@example.com', membership: 'Premium', dateOfStart: '2022-01-15' },
-    { name: 'Jane Smith', email: 'jane@example.com', membership: 'Basic', dateOfStart: '2021-08-23' },
-    { name: 'Sam Wilson', email: 'sam@example.com', membership: 'Standard', dateOfStart: '2023-03-01' },
-    { name: 'Sara Lee', email: 'sara@example.com', membership: 'Premium', dateOfStart: '2021-05-18' },
-  ]);
+  const [members, setMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [showModal, setShowModal] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', email: '', membership: '', dateOfStart: '' });
 
-  const handleDelete = (index) => {
-    setMembers(prev => prev.filter((_, i) => i !== index));
+  // Fetch all members from the API
+  useEffect(() => {
+    axios.get('http://localhost:4000/api/members', { withCredentials: true })
+      .then(response => setMembers(response.data))
+      .catch(error => console.error('Error fetching members:', error));
+  }, []);
+
+  // Handle Delete Member
+  const handleDelete = (id) => {
+    axios.delete(`http://localhost:4000/api/members/${id}`, { withCredentials: true })
+      .then(() => {
+        setMembers(members.filter(member => member._id !== id));
+      })
+      .catch(error => console.error('Error deleting member:', error));
   };
 
+  // Filter and sort members based on search and sorting
   const filtered = members
     .filter(m =>
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,10 +37,15 @@ const Members = () => {
       return 0;
     });
 
+  // Handle Add Member
   const handleAdd = () => {
-    setMembers(prev => [...prev, newMember]);
-    setShowModal(false);
-    setNewMember({ name: '', email: '', membership: '', dateOfStart: '' });
+    axios.post('http://localhost:4000/api/members', newMember, { withCredentials: true })
+      .then(response => {
+        setMembers([...members, response.data]);
+        setShowModal(false);
+        setNewMember({ name: '', email: '', membership: '', dateOfStart: '' });
+      })
+      .catch(error => console.error('Error adding member:', error));
   };
 
   return (
@@ -75,8 +89,8 @@ const Members = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((member, idx) => (
-              <tr key={idx} className="text-white">
+            {filtered.map((member) => (
+              <tr key={member._id} className="text-white">
                 <td className="px-6 py-4">{member.name}</td>
                 <td className="px-6 py-4">{member.email}</td>
                 <td className="px-6 py-4">{member.membership}</td>
@@ -84,7 +98,7 @@ const Members = () => {
                 <td className="px-6 py-4">
                   <div className="flex gap-3">
                     <button
-                      onClick={() => handleDelete(idx)}
+                      onClick={() => handleDelete(member._id)}
                       className="text-red-400 hover:text-red-600 transition transform hover:scale-110"
                       title="Delete Member"
                     >

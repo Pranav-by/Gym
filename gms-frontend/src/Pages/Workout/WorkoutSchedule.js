@@ -1,50 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const defaultSchedule = [
+  { day: 'Monday', exercises: ['Chest Press', 'Incline Dumbbell Press', 'Push-ups'] },
+  { day: 'Tuesday', exercises: ['Squats', 'Lunges', 'Leg Press'] },
+  { day: 'Wednesday', exercises: ['Rest Day'] },
+  { day: 'Thursday', exercises: ['Pull-ups', 'Deadlifts', 'Barbell Row'] },
+  { day: 'Friday', exercises: ['Shoulder Press', 'Lateral Raises', 'Plank'] },
+  { day: 'Saturday', exercises: ['Cardio: Treadmill + Cycling'] },
+  { day: 'Sunday', exercises: ['Yoga & Stretching'] },
+];
 
 const WorkoutSchedule = () => {
-  const [workouts, setWorkouts] = useState([
-    {
-      day: 'Monday',
-      exercises: ['Chest Press', 'Incline Dumbbell Press', 'Push-ups'],
-    },
-    {
-      day: 'Tuesday',
-      exercises: ['Squats', 'Lunges', 'Leg Press'],
-    },
-    {
-      day: 'Wednesday',
-      exercises: ['Rest Day'],
-    },
-    {
-      day: 'Thursday',
-      exercises: ['Pull-ups', 'Deadlifts', 'Barbell Row'],
-    },
-    {
-      day: 'Friday',
-      exercises: ['Shoulder Press', 'Lateral Raises', 'Plank'],
-    },
-    {
-      day: 'Saturday',
-      exercises: ['Cardio: Treadmill + Cycling'],
-    },
-    {
-      day: 'Sunday',
-      exercises: ['Yoga & Stretching'],
-    },
-  ]);
-
+  const [workouts, setWorkouts] = useState(defaultSchedule);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedExercises, setEditedExercises] = useState('');
+
+  useEffect(() => {
+    axios.get('http://localhost:4000/api/workouts')
+      .then(res => {
+        const backendData = res.data;
+
+        // Merge defaultSchedule with backend data
+        const merged = defaultSchedule.map(defaultDay => {
+          const match = backendData.find(w => w.day === defaultDay.day);
+          return match ? { ...match } : { ...defaultDay };
+        });
+
+        setWorkouts(merged);
+      })
+      .catch(err => console.error('Error fetching workouts:', err));
+  }, []);
 
   const handleEdit = (index) => {
     setEditingIndex(index);
     setEditedExercises(workouts[index].exercises.join(', '));
   };
 
-  const handleSave = () => {
-    const updated = [...workouts];
-    updated[editingIndex].exercises = editedExercises.split(',').map(e => e.trim());
-    setWorkouts(updated);
-    setEditingIndex(null);
+  const handleSave = async () => {
+    const updatedExercises = editedExercises.split(',').map(e => e.trim());
+    const current = workouts[editingIndex];
+
+    try {
+      if (current._id) {
+        // Update existing day
+        await axios.put(`http://localhost:4000/api/workouts/${current._id}`, {
+          exercises: updatedExercises,
+        });
+      } else {
+        // Create new entry for this day
+        const res = await axios.post(`http://localhost:4000/api/workouts`, {
+          day: current.day,
+          exercises: updatedExercises,
+        });
+        current._id = res.data._id;
+      }
+
+      const updated = [...workouts];
+      updated[editingIndex].exercises = updatedExercises;
+      setWorkouts(updated);
+      setEditingIndex(null);
+    } catch (err) {
+      console.error('Error saving workout:', err);
+      alert('Failed to save workout');
+    }
   };
 
   return (
@@ -54,13 +73,13 @@ const WorkoutSchedule = () => {
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {workouts.map((dayPlan, index) => (
           <div
-            key={index}
+            key={dayPlan.day}
             className="bg-gray-800 relative rounded-xl shadow-md p-6 hover:bg-gray-700 transition duration-300"
           >
             <h2 className="text-xl font-semibold text-yellow-300 mb-2">{dayPlan.day}</h2>
 
             {editingIndex === index ? (
-              <div>
+              <>
                 <textarea
                   value={editedExercises}
                   onChange={(e) => setEditedExercises(e.target.value)}
@@ -72,16 +91,19 @@ const WorkoutSchedule = () => {
                 >
                   ✅ Save
                 </button>
-              </div>
+              </>
             ) : (
               <ul className="list-disc pl-5 text-gray-300 space-y-1 text-sm">
-                {dayPlan.exercises.map((exercise, idx) => (
-                  <li key={idx}>✔ {exercise}</li>
-                ))}
+                {dayPlan.exercises.length > 0 ? (
+                  dayPlan.exercises.map((exercise, idx) => (
+                    <li key={idx}>✔ {exercise}</li>
+                  ))
+                ) : (
+                  <li className="text-gray-500">No exercises yet</li>
+                )}
               </ul>
             )}
 
-            {/* Fancy Edit Button */}
             {editingIndex !== index && (
               <button
                 onClick={() => handleEdit(index)}
